@@ -1,24 +1,34 @@
 package main
 
 import (
+	"flag"
 	"fmt"
-	"server/pkg/packets"
+	"net/http"
+	"server/internal/server"
+	"server/internal/server/clients"
+)
 
-	"google.golang.org/protobuf/proto"
+var (
+	port = flag.Int("port", 8080, "The port to listen on")
 )
 
 func main() {
-	packet := &packets.Packet{
-		SenderId: 69,
-		Msg:      packets.NewChat("Hello World!"),
-	}
+	flag.Parse()
 
-	fmt.Println(packet)
-	data, err := proto.Marshal(packet)
+	// Create a new hub
+	hub := server.NewHub()
+
+	// Define the handlers for the websocket connnections
+	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+		hub.Serve(clients.NewWebSocketClient, w, r)
+	})
+
+	go hub.Run()
+
+	addr := fmt.Sprintf(":%d", *port)
+	err := http.ListenAndServe(addr, nil)
 
 	if err != nil {
 		panic(err)
 	}
-
-	fmt.Println(data)
 }
