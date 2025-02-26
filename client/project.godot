@@ -16,7 +16,8 @@ config/features=PackedStringArray("4.4", "GL Compatibility")
 
 [autoload]
 
-WS="*res://websocket_client.gd"
+WS="*res://scripts/websocket_client.gd"
+GameManager="*res://scripts/game_manager.gd"
 
 [editor_plugins]
 
