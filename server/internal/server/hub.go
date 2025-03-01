@@ -18,6 +18,10 @@ import (
 //go:embed db/config/schema.sql
 var schemaGenSql string
 
+type SharedGameObjects struct {
+	Players *objects.SharedCollection[*objects.Player]
+}
+
 // A structure for a state machine to process the client's messages
 type ClientStateHandler interface {
 	Name() string
@@ -59,6 +63,8 @@ type ClientInterfacer interface {
 	ReadPump()
 	// Pump data from the client directly to the connected socket
 	WritePump()
+
+	SharedGameObjects() *SharedGameObjects
 	// Close the connection and clean up
 	Close(reason string)
 	// A reference to the db transaction context for this client
@@ -73,7 +79,8 @@ type Hub struct {
 	// Clients in this channel will be registered with the hub
 	RegisterChan chan ClientInterfacer
 	// Clients in this channel will be unregistered with the hub
-	UnregisterChan chan ClientInterfacer
+	UnregisterChan    chan ClientInterfacer
+	SharedGameObjects *SharedGameObjects
 	// Database connection pool
 	dbPool *sql.DB
 }
@@ -88,7 +95,10 @@ func NewHub() *Hub {
 		BroadcastChan:  make(chan *packets.Packet),
 		RegisterChan:   make(chan ClientInterfacer),
 		UnregisterChan: make(chan ClientInterfacer),
-		dbPool:         dbPool,
+		SharedGameObjects: &SharedGameObjects{
+			Players: objects.NewSharedCollection[*objects.Player](),
+		},
+		dbPool: dbPool,
 	}
 }
 
@@ -108,11 +118,13 @@ func (h *Hub) Run() {
 			log.Println("Client unregistered")
 		case packet := <-h.BroadcastChan:
 			h.Clients.ForEach(func(clientId uint64, client ClientInterfacer) {
+				print("Broadcasting to client", clientId)
 				if clientId != packet.SenderId {
 					client.ProcessMessage(packet.SenderId, packet.Msg)
 				}
 			})
 		}
+
 	}
 }
 

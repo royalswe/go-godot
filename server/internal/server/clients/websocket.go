@@ -173,6 +173,10 @@ func (c *WebSocketClient) WritePump() {
 	}
 }
 
+func (c *WebSocketClient) SharedGameObjects() *server.SharedGameObjects {
+	return c.hub.SharedGameObjects
+}
+
 func (c *WebSocketClient) DbTx() *server.DbTx {
 	return c.dbTx
 }

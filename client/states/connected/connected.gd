@@ -8,6 +8,8 @@ var _action_on_ok_received: Callable
 @onready var _password: LineEdit = $UI/VBoxContainer/Password
 @onready var _login_button: Button = $UI/VBoxContainer/HBoxContainer/LoginButton
 @onready var _register_button: Button = $UI/VBoxContainer/HBoxContainer/RegisterButton
+@onready var _play_as_guest_button: Button = $UI/VBoxContainer/HBoxContainer/PlayAsGuestButton
+
 @onready var _log: Log = $UI/VBoxContainer/Log
 
 func _ready() -> void:
@@ -15,12 +17,13 @@ func _ready() -> void:
 	WS.connection_closed.connect(_on_ws_connection_closed)
 	_login_button.pressed.connect(_on_login_button_pressed)
 	_register_button.pressed.connect(_on_register_button_pressed)
+	_play_as_guest_button.pressed.connect(_on_guest_button_pressed)
 	
 func _on_ws_connection_closed() -> void:
 	_log.info("Connection closed")
 	
 func _on_ws_packet_received(packet: packets.Packet) -> void:
-	var sender_id := packet.get_sender_id()
+	#var sender_id := packet.get_sender_id()
 	if packet.has_deny_response():
 		var deny_response_msg := packet.get_deny_response()
 		_log.error(deny_response_msg.get_reason())
@@ -42,4 +45,8 @@ func _on_register_button_pressed() -> void:
 	register_request_msg.set_password(_password.text)
 	WS.send(packet)
 	_action_on_ok_received = func (): _log.success("Registration successful!")
+	
+func _on_guest_button_pressed() -> void:
+	print("guest playing")
+	GameManager.set_state(GameManager.State.INGAME)
 	
