@@ -18,7 +18,7 @@ func _ready() -> void:
 func _handle_chat_msg(sender_id: int, chat_msg: packets.ChatMessage) -> void:
 	_log.chat("Client %d" % sender_id, chat_msg.get_msg())
 
-func _handle_player_msg(sender_id: int, player_msg: packets.PlayerMessage) -> void:
+func _handle_player_msg(_sender_id: int, player_msg: packets.PlayerMessage) -> void:
 	var actor_id := player_msg.get_id()
 
 	if actor_id not in _players:

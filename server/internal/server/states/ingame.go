@@ -37,7 +37,7 @@ func (g *InGame) OnEnter() {
 	g.player.X = rand.Float64() * 1000
 	g.player.Y = rand.Float64() * 1000
 	g.player.Radius = 20.0
-	g.player.Speed = 20.0
+	g.player.Speed = 150.0
 
 	g.client.SocketSend(packets.NewPlayer(g.client.Id(), g.player))
 }
@@ -48,6 +48,16 @@ func (g *InGame) HandleMessage(senderId uint64, message packets.Msg) {
 		g.handlePlayerUpdate(senderId, message)
 	case *packets.Packet_PlayerDirection:
 		g.handlePlayerDirection(senderId, message)
+	case *packets.Packet_Chat:
+		g.handleChat(senderId, message)
+	}
+}
+
+func (g *InGame) handleChat(senderId uint64, message *packets.Packet_Chat) {
+	if senderId == g.client.Id() {
+		g.client.Broadcast(message)
+	} else {
+		g.client.SocketSendAs(message, senderId)
 	}
 }
 
@@ -55,7 +65,7 @@ func (g *InGame) handlePlayerDirection(senderId uint64, message *packets.Packet_
 	if senderId == g.client.Id() {
 		g.player.Direction = message.PlayerDirection.Direction
 
-		if g.cancelPlayerUpdateLoop != nil {
+		if g.cancelPlayerUpdateLoop == nil {
 			ctx, cancel := context.WithCancel(context.Background())
 			g.cancelPlayerUpdateLoop = cancel
 			go g.updatePlayerLoop(ctx)
@@ -78,10 +88,10 @@ func (g *InGame) updatePlayerLoop(ctx context.Context) {
 
 	for {
 		select {
-		case <-ctx.Done():
-			return
 		case <-ticker.C:
 			g.syncPlayer(delta)
+		case <-ctx.Done():
+			return
 		}
 	}
 }

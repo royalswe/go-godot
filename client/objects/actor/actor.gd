@@ -20,15 +20,15 @@ var radius: float
 @onready var _name_plate: Label = $NamePlate
 
 
-static func instantiate(actor_id: int, actor_name: String, x: float, y: float, _radius: float, speed: float, is_player: bool) -> Actor:
+static func instantiate(_actor_id: int, _actor_name: String, _x: float, _y: float, _radius: float, _speed: float, _is_player: bool) -> Actor:
 	var actor := Scene.instantiate()
-	actor.actor_id = actor_id
-	actor.actor_name = actor_name
-	actor.start_x = x
-	actor.start_y = y
+	actor.actor_id = _actor_id
+	actor.actor_name = _actor_name
+	actor.start_x = _x
+	actor.start_y = _y
 	actor.start_radius = _radius
-	actor.speed = speed
-	actor.is_player = is_player
+	actor.speed = _speed
+	actor.is_player = _is_player
 
 	return actor
 	
@@ -52,7 +52,7 @@ func _input(event: InputEvent) -> void:
 		_camera.zoom.y = _camera.zoom.x
 
 func _physics_process(delta: float) -> void:
-	position += velocity * delta * speed
+	position += velocity * delta
 	
 	if not is_player:
 		return

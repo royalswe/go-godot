@@ -118,7 +118,6 @@ func (h *Hub) Run() {
 			log.Println("Client unregistered")
 		case packet := <-h.BroadcastChan:
 			h.Clients.ForEach(func(clientId uint64, client ClientInterfacer) {
-				print("Broadcasting to client", clientId)
 				if clientId != packet.SenderId {
 					client.ProcessMessage(packet.SenderId, packet.Msg)
 				}
