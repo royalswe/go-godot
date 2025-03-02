@@ -47,6 +47,12 @@ func _on_register_button_pressed() -> void:
 	_action_on_ok_received = func (): _log.success("Registration successful!")
 	
 func _on_guest_button_pressed() -> void:
-	print("guest playing")
+	var username := _username.text.strip_edges()
+	if username.is_empty():
+		username = "Guest" + str(randi() % 10000) # Generates a random number from 0 to 9999
+	var packet := packets.Packet.new()
+	var guest_login_request_msg := packet.new_guest_login_request()
+	guest_login_request_msg.set_username(username)
+	WS.send(packet)
 	GameManager.set_state(GameManager.State.INGAME)
 	

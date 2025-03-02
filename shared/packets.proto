@@ -6,6 +6,7 @@ option go_package = "pkg/packets";
 message ChatMessage { string msg = 1; }
 message IdMessage { uint64 id = 1; }
 message LoginRequestMessage { string username = 1; string password = 2; }
+message GuestLoginRequestMessage { string username = 1; }
 message RegisterRequestMessage { string username = 1; string password = 2; }
 message OkResponseMessage { }
 message DenyResponseMessage { string reason = 1; }
@@ -19,10 +20,11 @@ message Packet {
         ChatMessage chat = 2;
         IdMessage id = 3;
         LoginRequestMessage login_request = 4;
-        RegisterRequestMessage register_request = 5;
-        OkResponseMessage ok_response = 6;
-        DenyResponseMessage deny_response = 7;
-        PlayerMessage player = 8;
-        PlayerDirectionMessage player_direction = 9;
+        GuestLoginRequestMessage guest_login_request = 5;
+        RegisterRequestMessage register_request = 6;
+        OkResponseMessage ok_response = 7;
+        DenyResponseMessage deny_response = 8;
+        PlayerMessage player = 9;
+        PlayerDirectionMessage player_direction = 10;
     }
 }

@@ -41,9 +41,28 @@ func (c *Connected) HandleMessage(senderId uint64, message packets.Msg) {
 	switch message := message.(type) {
 	case *packets.Packet_LoginRequest:
 		c.handleLoginRequest(senderId, message)
+	case *packets.Packet_GuestLoginRequest:
+		c.handleGuestLoginRequest(senderId, message)
 	case *packets.Packet_RegisterRequest:
 		c.handleRegisterRequest(senderId, message)
 	}
+}
+
+func (c *Connected) handleGuestLoginRequest(senderId uint64, message *packets.Packet_GuestLoginRequest) {
+	if senderId != c.client.Id() {
+		c.logger.Printf("Received guest login request from %d, but I'm %d", senderId, c.client.Id())
+		return
+	}
+
+	username := message.GuestLoginRequest.Username
+	c.logger.Printf("Received guest login request from %d for username %s", senderId, username)
+	c.client.SocketSend(packets.NewOkResponse())
+
+	c.client.SetState(&InGame{
+		player: &objects.Player{
+			Name: username,
+		},
+	})
 }
 
 func (c *Connected) handleLoginRequest(senderId uint64, message *packets.Packet_LoginRequest) {

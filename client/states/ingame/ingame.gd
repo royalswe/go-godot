@@ -16,7 +16,9 @@ func _ready() -> void:
 	_line_edit.text_submitted.connect(_on_line_edit_text_submitted)
 
 func _handle_chat_msg(sender_id: int, chat_msg: packets.ChatMessage) -> void:
-	_log.chat("Client %d" % sender_id, chat_msg.get_msg())
+	if sender_id in _players:
+		var actor := _players[sender_id]
+		_log.chat(actor.actor_name, chat_msg.get_msg())
 
 func _handle_player_msg(_sender_id: int, player_msg: packets.PlayerMessage) -> void:
 	var actor_id := player_msg.get_id()
