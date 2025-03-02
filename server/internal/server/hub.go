@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	_ "embed"
 	"log"
+	"math/rand"
 	"net/http"
 	"server/internal/server/db"
 	"server/internal/server/objects"
@@ -13,6 +14,8 @@ import (
 	_ "modernc.org/sqlite"
 )
 
+const MaxSpores = 1000
+
 // Embed the database schema to be used when creating the database tables
 //
 //go:embed db/config/schema.sql
@@ -20,6 +23,7 @@ var schemaGenSql string
 
 type SharedGameObjects struct {
 	Players *objects.SharedCollection[*objects.Player]
+	Spores  *objects.SharedCollection[*objects.Spore]
 }
 
 // A structure for a state machine to process the client's messages
@@ -97,6 +101,7 @@ func NewHub() *Hub {
 		UnregisterChan: make(chan ClientInterfacer),
 		SharedGameObjects: &SharedGameObjects{
 			Players: objects.NewSharedCollection[*objects.Player](),
+			Spores:  objects.NewSharedCollection[*objects.Spore](),
 		},
 		dbPool: dbPool,
 	}
@@ -106,6 +111,10 @@ func (h *Hub) Run() {
 	log.Println("Init db")
 	if _, err := h.dbPool.ExecContext(context.Background(), schemaGenSql); err != nil {
 		log.Fatal(err)
+	}
+
+	for i := 0; i < MaxSpores; i++ {
+		h.SharedGameObjects.Spores.Add(h.NewSpore())
 	}
 
 	for {
@@ -140,4 +149,14 @@ func (h *Hub) Serve(getNewClient func(*Hub, http.ResponseWriter, *http.Request) 
 
 	go client.WritePump()
 	go client.ReadPump()
+}
+
+func (h *Hub) NewSpore() *objects.Spore {
+	sporeRadius := max(10+rand.NormFloat64()*3, 5)
+	x, y := objects.SpawnCords()
+	return &objects.Spore{
+		X:      x,
+		Y:      y,
+		Radius: sporeRadius,
+	}
 }
