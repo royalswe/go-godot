@@ -83,6 +83,8 @@ func _on_ws_packet_received(packet: packets.Packet) -> void:
 		_handle_spore_msg(sender_id, packet.get_spore())
 	elif packet.has_spores_batch():
 		_handle_spores_batch_msg(sender_id, packet.get_spores_batch())
+	elif packet.has_spore_consumed():
+		_handle_spore_consumed_msg(sender_id, packet.get_spore_consumed())
 
 func _handle_spore_msg(sender_id: int, spore_msg: packets.SporeMessage) -> void:
 	var spore_id := spore_msg.get_id()
@@ -102,6 +104,29 @@ func _handle_spores_batch_msg(sender_id: int, spores_batch_msg: packets.SporesBa
 func _on_player_area_entered(area: Area2D) -> void:
 	if area is Spore:
 		_consume_spore(area as Spore)
+	elif area is Actor:
+		_collide_actor(area as Actor)
+
+func _collide_actor(opponent: Actor) -> void:
+	var you = _players[GameManager.client_id]
+	var your_mass = _rad_to_mass(you.radius)
+	var opponent_mass = _rad_to_mass(opponent.radius)
+	
+	if your_mass > opponent_mass * 1.5:
+		_consume_actor(opponent)
+	
+func _consume_actor(opponent: Actor):
+	var you = _players[GameManager.client_id]
+	var your_mass = _rad_to_mass(you.radius)
+	var opponent_mass = _rad_to_mass(opponent.radius)
+	_set_actor_mass(you, your_mass + opponent_mass)
+	
+	var packet := packets.Packet.new()
+	var player_consumed_message := packet.new_player_consumed()
+	player_consumed_message.set_player_id(opponent.actor_id)
+	WS.send(packet)
+	
+	_remove_actor(opponent)
 
 func _consume_spore(spore: Spore) -> void:
 	var packet := packets.Packet.new()
@@ -113,3 +138,26 @@ func _consume_spore(spore: Spore) -> void:
 func _remove_spore(spore: Spore) -> void:
 	_spores.erase(spore.spore_id)
 	spore.queue_free()
+
+func _remove_actor(actor: Actor) -> void:
+	_players.erase(actor.actor_id)
+	actor.queue_free()
+
+func _handle_spore_consumed_msg(sender_id: int, spore_consumed_msg: packets.SporeConsumedMessage) -> void:
+	if sender_id in _players:
+		var actor := _players[sender_id]
+		var actor_mass := _rad_to_mass(actor.radius)
+		
+		var spore_id = spore_consumed_msg.get_spore_id()
+		if spore_id in _spores:
+			var spore := _spores[spore_id]
+			var spore_mass := _rad_to_mass(spore.radius)
+			
+			_set_actor_mass(actor, actor_mass + spore_mass)
+			_remove_spore(spore)
+		
+func _rad_to_mass(radius: float) -> float:
+	return radius * radius * PI
+
+func _set_actor_mass(actor: Actor, new_mass: float) -> void:
+	actor.radius = sqrt(new_mass / PI)

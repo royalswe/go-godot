@@ -15,6 +15,7 @@ message PlayerDirectionMessage { double direction = 1; }
 message SporeMessage { uint64 id = 1; double x = 2; double y = 3; double radius = 4; }
 message SporeConsumedMessage { uint64 spore_id = 1; }
 message SporesBatchMessage { repeated SporeMessage spores = 1; }
+message PlayerConsumedMessage { uint64 player_id = 1; }
 
 // Define the main Packet message
 message Packet {
@@ -32,5 +33,6 @@ message Packet {
         SporeMessage spore = 11;
         SporeConsumedMessage spore_consumed = 12;
         SporesBatchMessage spores_batch = 13;
+        PlayerConsumedMessage player_consumed = 14;
     }
 }
