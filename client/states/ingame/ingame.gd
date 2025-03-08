@@ -4,8 +4,9 @@ const packets = preload("res://scripts/packets.gd")
 const Actor = preload("res://objects/actor/actor.gd")
 const Spore = preload("res://objects/spore/spore.gd")
 
-@onready var _line_edit: LineEdit = $UI/LineEdit
-@onready var _log: Log = $UI/Log
+@onready var _line_edit: LineEdit = $UI/VBoxContainer/LineEdit
+@onready var _log: Log = $UI/VBoxContainer/Log
+@onready var _highscores: Highscores = $UI/VBoxContainer/Highscores
 @onready var _world: Node2D = $World
 
 var _players: Dictionary[int, Actor]
@@ -39,6 +40,7 @@ func _handle_player_msg(_sender_id: int, player_msg: packets.PlayerMessage) -> v
 func _add_actor(actor_id: int, actor_name: String, x: float, y: float, radius: float, speed: float, is_player: bool) -> void:
 	var actor := Actor.instantiate(actor_id, actor_name, x, y, radius, speed, is_player)
 	_world.add_child(actor)
+	_set_actor_mass(actor, _rad_to_mass(radius))
 	_players[actor_id] = actor
 	
 	if is_player:
@@ -46,7 +48,8 @@ func _add_actor(actor_id: int, actor_name: String, x: float, y: float, radius: f
 	
 func _update_player(actor_id: int, direction: float, x: float, y: float, radius: float, speed: float, is_player: bool) -> void:
 	var actor := _players[actor_id]
-	actor.radius = radius
+	
+	_set_actor_mass(actor, _rad_to_mass(radius))
 	
 	# Prevent update position to often, player needs to move at least around 10px
 	if actor.position.distance_squared_to(Vector2.from_angle(direction)) > 100: 
@@ -86,7 +89,7 @@ func _on_ws_packet_received(packet: packets.Packet) -> void:
 	elif packet.has_spore_consumed():
 		_handle_spore_consumed_msg(sender_id, packet.get_spore_consumed())
 
-func _handle_spore_msg(sender_id: int, spore_msg: packets.SporeMessage) -> void:
+func _handle_spore_msg(_sender_id: int, spore_msg: packets.SporeMessage) -> void:
 	var spore_id := spore_msg.get_id()
 	var x := spore_msg.get_x()
 	var y := spore_msg.get_y()
@@ -142,6 +145,7 @@ func _remove_spore(spore: Spore) -> void:
 func _remove_actor(actor: Actor) -> void:
 	_players.erase(actor.actor_id)
 	actor.queue_free()
+	_highscores.remove_highscore(actor.actor_name)
 
 func _handle_spore_consumed_msg(sender_id: int, spore_consumed_msg: packets.SporeConsumedMessage) -> void:
 	if sender_id in _players:
@@ -161,3 +165,4 @@ func _rad_to_mass(radius: float) -> float:
 
 func _set_actor_mass(actor: Actor, new_mass: float) -> void:
 	actor.radius = sqrt(new_mass / PI)
+	_highscores.set_highscore(actor.actor_name, roundi(new_mass))
