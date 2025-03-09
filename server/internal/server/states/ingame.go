@@ -57,7 +57,19 @@ func (g *InGame) HandleMessage(senderId uint64, message packets.Msg) {
 		g.handlePlayerConsumed(senderId, message)
 	case *packets.Packet_Spore:
 		g.handleSpore(senderId, message)
+	case *packets.Packet_Disconnect:
+		g.handleDisconnect(senderId, message)
 	}
+}
+
+func (g *InGame) handleDisconnect(senderId uint64, message *packets.Packet_Disconnect) {
+	if senderId == g.client.Id() {
+		g.client.Broadcast(message)
+		g.client.SetState(&Connected{})
+		return
+	}
+
+	go g.client.SocketSendAs(message, senderId)
 }
 
 func (g *InGame) handleSpore(senderId uint64, message *packets.Packet_Spore) {

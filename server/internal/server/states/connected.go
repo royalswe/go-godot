@@ -60,7 +60,8 @@ func (c *Connected) handleGuestLoginRequest(senderId uint64, message *packets.Pa
 
 	c.client.SetState(&InGame{
 		player: &objects.Player{
-			Name: username,
+			Name:  username,
+			Color: int32(message.GuestLoginRequest.Color),
 		},
 	})
 }
@@ -93,7 +94,8 @@ func (c *Connected) handleLoginRequest(senderId uint64, message *packets.Packet_
 
 	c.client.SetState(&InGame{
 		player: &objects.Player{
-			Name: username,
+			Name:  username,
+			Color: int32(message.LoginRequest.Color),
 		},
 	})
 }

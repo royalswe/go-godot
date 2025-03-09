@@ -6,10 +6,10 @@ var _action_on_ok_received: Callable
 
 @onready var _username: LineEdit = $UI/VBoxContainer/Username
 @onready var _password: LineEdit = $UI/VBoxContainer/Password
+@onready var _color_picker: ColorPicker = $UI/VBoxContainer/ColorPicker
 @onready var _login_button: Button = $UI/VBoxContainer/HBoxContainer/LoginButton
 @onready var _register_button: Button = $UI/VBoxContainer/HBoxContainer/RegisterButton
 @onready var _play_as_guest_button: Button = $UI/VBoxContainer/HBoxContainer/PlayAsGuestButton
-
 @onready var _log: Log = $UI/VBoxContainer/Log
 
 func _ready() -> void:
@@ -35,6 +35,7 @@ func _on_login_button_pressed() -> void:
 	var login_request_msg := packet.new_login_request()
 	login_request_msg.set_username(_username.text)
 	login_request_msg.set_password(_password.text)
+	login_request_msg.set_color(_color_picker.color.to_rgba32())
 	WS.send(packet)
 	_action_on_ok_received = func (): GameManager.set_state(GameManager.State.INGAME)
 	
@@ -53,6 +54,8 @@ func _on_guest_button_pressed() -> void:
 	var packet := packets.Packet.new()
 	var guest_login_request_msg := packet.new_guest_login_request()
 	guest_login_request_msg.set_username(username)
+	guest_login_request_msg.set_color(_color_picker.color.to_rgba32())
+
 	WS.send(packet)
 	GameManager.set_state(GameManager.State.INGAME)
 	

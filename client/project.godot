@@ -23,6 +23,13 @@ GameManager="*res://scripts/game_manager.gd"
 
 enabled=PackedStringArray("res://addons/protobuf/plugin.cfg")
 
+[input]
+
+zoom_in={
+"deadzone": 0.2,
+"events": []
+}
+
 [rendering]
 
 renderer/rendering_method="gl_compatibility"

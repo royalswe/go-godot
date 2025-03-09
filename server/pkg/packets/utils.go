@@ -44,6 +44,7 @@ func NewPlayer(id uint64, player *objects.Player) Msg {
 			Radius:    player.Radius,
 			Direction: player.Direction,
 			Speed:     player.Speed,
+			Color:     player.Color,
 		},
 	}
 }
@@ -63,6 +64,14 @@ func NewSporesBatch(spores map[uint64]*objects.Spore) Msg {
 	return &Packet_SporesBatch{
 		SporesBatch: &SporesBatchMessage{
 			Spores: sporeBatches,
+		},
+	}
+}
+
+func NewDisconnect(reason string) Msg {
+	return &Packet_Disconnect{
+		Disconnect: &DisconnectMessage{
+			Reason: reason,
 		},
 	}
 }
